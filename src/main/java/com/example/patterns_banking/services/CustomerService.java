@@ -4,14 +4,18 @@ import com.example.patterns_banking.dtos.CustomerDTO;
 import com.example.patterns_banking.models.Customer;
 import com.example.patterns_banking.repositories.CustomerRepository;
 import com.example.patterns_banking.repositories.ICustomerRepository;
+import com.example.patterns_banking.services.proxy.ICustomerOperations;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CustomerService {
   private final ICustomerRepository customerRepository;
+  private final ICustomerOperations customerOperations;
 
-  public CustomerService(ICustomerRepository customerRepository) {
+  public CustomerService(ICustomerRepository customerRepository, ICustomerOperations customerOperations) {
+
     this.customerRepository = customerRepository;
+    this.customerOperations=customerOperations;
   }
 
   public Customer create(CustomerDTO customerDTO) {
@@ -21,7 +25,9 @@ public class CustomerService {
       .email(customerDTO.getEmail())
       .build();
 
-    // Implementar proxy para verificar que el correo no sea del dominio yahoo
+    if (customerOperations.isNotYahooEmail(customerDTO.getEmail())) {
+      throw new IllegalArgumentException("No se permiten correos del dominio yahoo.com");
+    }
     return customerRepository.save(customer);
   }
 }
